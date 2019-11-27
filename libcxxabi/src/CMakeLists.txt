@@ -164,7 +164,7 @@ if (LIBCXXABI_ENABLE_SHARED)
                           CXX_EXTENSIONS
                             OFF
                           CXX_STANDARD
-                            11
+                            17
                           CXX_STANDARD_REQUIRED
                             ON
                           COMPILE_FLAGS
