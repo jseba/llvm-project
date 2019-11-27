@@ -43,14 +43,12 @@
 #endif
 
 #ifndef _LIBCPP_STD_VER
-#  if  __cplusplus <= 201103L
-#    define _LIBCPP_STD_VER 11
-#  elif __cplusplus <= 201402L
-#    define _LIBCPP_STD_VER 14
+#  if __cplusplus <= 201402L
+#    error "C++17 mode (or newer) is required"
 #  elif __cplusplus <= 201703L
 #    define _LIBCPP_STD_VER 17
 #  else
-#    define _LIBCPP_STD_VER 18  // current year, or date of c++2a ratification
+#    define _LIBCPP_STD_VER 19  // current year, or date of c++2a ratification
 #  endif
 #endif  // _LIBCPP_STD_VER
 
@@ -63,7 +61,7 @@
 #elif defined(__wasm__)
 #  define _LIBCPP_OBJECT_FORMAT_WASM  1
 #else
-#  error Unknown object file format
+#  error "Unknown object file format"
 #endif
 
 #if defined(_LIBCPP_ABI_UNSTABLE) || _LIBCPP_ABI_VERSION >= 2
@@ -83,7 +81,7 @@
 // Don't use a nullptr_t simulation type in C++03 instead using C++11 nullptr
 // provided under the alternate keyword __nullptr, which changes the mangling
 // of nullptr_t. This option is ABI incompatible with GCC in C++03 mode.
-#  define _LIBCPP_ABI_ALWAYS_USE_CXX11_NULLPTR
+/* #  define _LIBCPP_ABI_ALWAYS_USE_CXX11_NULLPTR */
 // Define the `pointer_safety` enum as a C++11 strongly typed enumeration
 // instead of as a class simulating an enum. If this option is enabled
 // `pointer_safety` and `get_pointer_safety()` will no longer be available
@@ -111,16 +109,10 @@
 // conflict with the dllexport-emitted copy, so we disable it.
 #    define _LIBCPP_DEPRECATED_ABI_LEGACY_LIBRARY_DEFINITIONS_FOR_INLINE_FUNCTIONS
 #  endif
-// Feature macros for disabling pre ABI v1 features. All of these options
-// are deprecated.
-#  if defined(__FreeBSD__)
-#    define _LIBCPP_DEPRECATED_ABI_DISABLE_PAIR_TRIVIAL_COPY_CTOR
-#  endif
 #endif
 
 #ifdef _LIBCPP_TRIVIAL_PAIR_COPY_CTOR
-#error "_LIBCPP_TRIVIAL_PAIR_COPY_CTOR" is no longer supported. \
-       use _LIBCPP_DEPRECATED_ABI_DISABLE_PAIR_TRIVIAL_COPY_CTOR instead
+#error "'_LIBCPP_TRIVIAL_PAIR_COPY_CTOR' is no longer supported."
 #endif
 
 #define _LIBCPP_CONCAT1(_LIBCPP_X,_LIBCPP_Y) _LIBCPP_X##_LIBCPP_Y
@@ -128,10 +120,6 @@
 
 #ifndef _LIBCPP_ABI_NAMESPACE
 # define _LIBCPP_ABI_NAMESPACE _LIBCPP_CONCAT(__,_LIBCPP_ABI_VERSION)
-#endif
-
-#if __cplusplus < 201103L
-#define _LIBCPP_CXX03_LANG
 #endif
 
 #ifndef __has_attribute
@@ -181,10 +169,6 @@
 #  define _LIBCPP_COMPILER_MSVC
 #elif defined(__IBMCPP__)
 #  define _LIBCPP_COMPILER_IBM
-#endif
-
-#if defined(_LIBCPP_COMPILER_GCC) && __cplusplus < 201103L
-#error "libc++ does not support using GCC with C++03. Please enable C++11"
 #endif
 
 // FIXME: ABI detection should be done via compiler builtin macros. This
@@ -378,16 +362,10 @@
 #  endif // __linux__
 #endif
 
-#ifndef _LIBCPP_CXX03_LANG
-# define _LIBCPP_ALIGNOF(_Tp) alignof(_Tp)
-#elif defined(_LIBCPP_COMPILER_CLANG)
-# define _LIBCPP_ALIGNOF(_Tp) _Alignof(_Tp)
-#else
-// This definition is potentially buggy, but it's only taken with GCC in C++03,
-// which we barely support anyway. See llvm.org/PR39713
-# define _LIBCPP_ALIGNOF(_Tp) __alignof(_Tp)
-#endif
+// TODO: Remove
+#define _LIBCPP_ALIGNOF(_Tp) alignof(_Tp)
 
+// TODO: Remove
 #define _LIBCPP_PREFERRED_ALIGNOF(_Tp) __alignof(_Tp)
 
 #if defined(_LIBCPP_COMPILER_CLANG)
@@ -400,18 +378,9 @@
 #define _LIBCPP_ABI_ALTERNATE_STRING_LAYOUT
 #endif
 
-#if __has_feature(cxx_alignas)
-#  define _ALIGNAS_TYPE(x) alignas(x)
-#  define _ALIGNAS(x) alignas(x)
-#else
-#  define _ALIGNAS_TYPE(x) __attribute__((__aligned__(_LIBCPP_ALIGNOF(x))))
-#  define _ALIGNAS(x) __attribute__((__aligned__(x)))
-#endif
-
-#if __cplusplus < 201103L
-typedef __char16_t char16_t;
-typedef __char32_t char32_t;
-#endif
+// TODO: Remove
+#define _ALIGNAS_TYPE(x) alignas(x)
+#define _ALIGNAS(x) alignas(x)
 
 #if !(__has_feature(cxx_exceptions)) && !defined(_LIBCPP_NO_EXCEPTIONS)
 #define _LIBCPP_NO_EXCEPTIONS
@@ -422,37 +391,29 @@ typedef __char32_t char32_t;
 #endif
 
 #if !(__has_feature(cxx_strong_enums))
-#define _LIBCPP_HAS_NO_STRONG_ENUMS
+#error "Compiler does not support 'enum class'"
 #endif
 
-#if __has_feature(cxx_attributes)
-#  define _LIBCPP_NORETURN [[noreturn]]
-#else
-#  define _LIBCPP_NORETURN __attribute__ ((noreturn))
-#endif
+#define _LIBCPP_NORETURN [[noreturn]]
 
 #if !(__has_feature(cxx_lambdas))
-#define _LIBCPP_HAS_NO_LAMBDAS
+#error "Compiler does not support lambdas"
 #endif
 
 #if !(__has_feature(cxx_nullptr))
-#  if (__has_extension(cxx_nullptr) || __has_keyword(__nullptr)) && defined(_LIBCPP_ABI_ALWAYS_USE_CXX11_NULLPTR)
-#    define nullptr __nullptr
-#  else
-#    define _LIBCPP_HAS_NO_NULLPTR
-#  endif
+#error "Compiler does not support 'nullptr'"
 #endif
 
 #if !(__has_feature(cxx_rvalue_references))
-#define _LIBCPP_HAS_NO_RVALUE_REFERENCES
+#error "Compiler does not support rvalue references"
 #endif
 
 #if !(__has_feature(cxx_auto_type))
-#define _LIBCPP_HAS_NO_AUTO_TYPE
+#error "Compiler does not support 'auto'"
 #endif
 
 #if !(__has_feature(cxx_variadic_templates))
-#define _LIBCPP_HAS_NO_VARIADICS
+#error "Compiler does not support variadic templates"
 #endif
 
 // Objective-C++ features (opt-in)
@@ -465,15 +426,15 @@ typedef __char32_t char32_t;
 #endif
 
 #if !(__has_feature(cxx_relaxed_constexpr))
-#define _LIBCPP_HAS_NO_CXX14_CONSTEXPR
+#error "Compiler does not support C++14 relaxed constexpr"
 #endif
 
 #if !(__has_feature(cxx_variable_templates))
-#define _LIBCPP_HAS_NO_VARIABLE_TEMPLATES
+#error "Compiler does not support variable templates"
 #endif
 
 #if !(__has_feature(cxx_noexcept))
-#define _LIBCPP_HAS_NO_NOEXCEPT
+#error "Compiler does not support 'noexcept'"
 #endif
 
 #if !defined(_LIBCPP_HAS_NO_ASAN) && !__has_feature(address_sanitizer)
@@ -486,6 +447,7 @@ typedef __char32_t char32_t;
 #endif
 
 #if __has_builtin(__builtin_launder)
+// TODO: error
 #define _LIBCPP_COMPILER_HAS_BUILTIN_LAUNDER
 #endif
 
@@ -505,10 +467,10 @@ typedef __char32_t char32_t;
 
 #elif defined(_LIBCPP_COMPILER_GCC)
 
-#define _ALIGNAS(x) __attribute__((__aligned__(x)))
-#define _ALIGNAS_TYPE(x) __attribute__((__aligned__(_LIBCPP_ALIGNOF(x))))
+#define _ALIGNAS_TYPE(x) alignas(x)
+#define _ALIGNAS(x) alignas(x)
 
-#define _LIBCPP_NORETURN __attribute__((noreturn))
+#define _LIBCPP_NORETURN [[noreturn]]
 
 #if !__EXCEPTIONS && !defined(_LIBCPP_NO_EXCEPTIONS)
 #define _LIBCPP_NO_EXCEPTIONS
@@ -516,12 +478,12 @@ typedef __char32_t char32_t;
 
 // Determine if GCC supports relaxed constexpr
 #if !defined(__cpp_constexpr) || __cpp_constexpr < 201304L
-#define _LIBCPP_HAS_NO_CXX14_CONSTEXPR
+#error "Compiler does not support C++14 relaxed constexpr"
 #endif
 
 // GCC 5 supports variable templates
 #if !defined(__cpp_variable_templates) || __cpp_variable_templates < 201304L
-#define _LIBCPP_HAS_NO_VARIABLE_TEMPLATES
+#error "Compiler does not support variable templates"
 #endif
 
 #if !defined(_LIBCPP_HAS_NO_ASAN) && !defined(__SANITIZE_ADDRESS__)
@@ -550,6 +512,7 @@ typedef __char32_t char32_t;
 #error "MSVC versions prior to Visual Studio 2015 are not supported"
 #endif
 
+// FIXME: this needs looked at
 #define _LIBCPP_HAS_NO_CXX14_CONSTEXPR
 #define _LIBCPP_HAS_NO_VARIABLE_TEMPLATES
 #define __alignof__ __alignof
@@ -569,6 +532,7 @@ typedef __char32_t char32_t;
 
 #elif defined(_LIBCPP_COMPILER_IBM)
 
+// FIXME: this needs looked at
 #define _ALIGNAS(x) __attribute__((__aligned__(x)))
 #define _ALIGNAS_TYPE(x) __attribute__((__aligned__(_LIBCPP_ALIGNOF(x))))
 #define _ATTRIBUTE(x) __attribute__((x))
@@ -802,8 +766,7 @@ _LIBCPP_BEGIN_NAMESPACE_STD _LIBCPP_END_NAMESPACE_STD
 #  define _NOEXCEPT noexcept
 #  define _NOEXCEPT_(x) noexcept(x)
 #else
-#  define _NOEXCEPT throw()
-#  define _NOEXCEPT_(x)
+#  error "Compiler does not support noexcept"
 #endif
 
 #ifdef _LIBCPP_HAS_NO_UNICODE_CHARS
@@ -815,28 +778,11 @@ typedef unsigned int   char32_t;
 #define _LIBCPP_HAS_NO_INT128
 #endif
 
-#ifdef _LIBCPP_CXX03_LANG
-# define static_assert(...) _Static_assert(__VA_ARGS__)
-# define decltype(...) __decltype(__VA_ARGS__)
-#endif  // _LIBCPP_CXX03_LANG
+#define _LIBCPP_CONSTEXPR constexpr
 
-#ifdef _LIBCPP_CXX03_LANG
-#  define _LIBCPP_CONSTEXPR
-#else
-#  define _LIBCPP_CONSTEXPR constexpr
-#endif
+#define _LIBCPP_DEFAULT = default;
 
-#ifdef _LIBCPP_CXX03_LANG
-#  define _LIBCPP_DEFAULT {}
-#else
-#  define _LIBCPP_DEFAULT = default;
-#endif
-
-#ifdef _LIBCPP_CXX03_LANG
-#  define _LIBCPP_EQUAL_DELETE
-#else
-#  define _LIBCPP_EQUAL_DELETE = delete
-#endif
+#define _LIBCPP_EQUAL_DELETE = delete
 
 #ifdef __GNUC__
 #  define _LIBCPP_NOALIAS __attribute__((__malloc__))
@@ -845,7 +791,7 @@ typedef unsigned int   char32_t;
 #endif
 
 #if __has_feature(cxx_explicit_conversions) || defined(__IBMCPP__) || \
-    (!defined(_LIBCPP_CXX03_LANG) && defined(__GNUC__)) // All supported GCC versions
+    (defined(__GNUC__)) // All supported GCC versions
 #  define _LIBCPP_EXPLICIT explicit
 #else
 #  define _LIBCPP_EXPLICIT
@@ -855,18 +801,8 @@ typedef unsigned int   char32_t;
 #define _LIBCPP_HAS_NO_BUILTIN_OPERATOR_NEW_DELETE
 #endif
 
-#ifdef _LIBCPP_HAS_NO_STRONG_ENUMS
-#  define _LIBCPP_DECLARE_STRONG_ENUM(x) struct _LIBCPP_TYPE_VIS x { enum __lx
-#  define _LIBCPP_DECLARE_STRONG_ENUM_EPILOG(x) \
-     __lx __v_; \
-     _LIBCPP_INLINE_VISIBILITY x(__lx __v) : __v_(__v) {} \
-     _LIBCPP_INLINE_VISIBILITY explicit x(int __v) : __v_(static_cast<__lx>(__v)) {} \
-     _LIBCPP_INLINE_VISIBILITY operator int() const {return __v_;} \
-     };
-#else  // _LIBCPP_HAS_NO_STRONG_ENUMS
-#  define _LIBCPP_DECLARE_STRONG_ENUM(x) enum class _LIBCPP_ENUM_VIS x
-#  define _LIBCPP_DECLARE_STRONG_ENUM_EPILOG(x)
-#endif  // _LIBCPP_HAS_NO_STRONG_ENUMS
+#define _LIBCPP_DECLARE_STRONG_ENUM(x) enum class _LIBCPP_ENUM_VIS x
+#define _LIBCPP_DECLARE_STRONG_ENUM_EPILOG(x)
 
 #ifdef _LIBCPP_DEBUG
 #  if _LIBCPP_DEBUG == 0
@@ -950,33 +886,21 @@ typedef unsigned int   char32_t;
 // Deprecations warnings are always enabled, except when users explicitly opt-out
 // by defining _LIBCPP_DISABLE_DEPRECATION_WARNINGS.
 #if !defined(_LIBCPP_DISABLE_DEPRECATION_WARNINGS)
-#  if __has_attribute(deprecated)
-#    define _LIBCPP_DEPRECATED __attribute__ ((deprecated))
-#  elif _LIBCPP_STD_VER > 11
-#    define _LIBCPP_DEPRECATED [[deprecated]]
-#  else
-#    define _LIBCPP_DEPRECATED
-#  endif
+#  define _LIBCPP_DEPRECATED [[deprecated]]
 #else
 #  define _LIBCPP_DEPRECATED
-#endif
-
-#if !defined(_LIBCPP_CXX03_LANG)
-#  define _LIBCPP_DEPRECATED_IN_CXX11 _LIBCPP_DEPRECATED
-#else
-#  define _LIBCPP_DEPRECATED_IN_CXX11
-#endif
-
-#if _LIBCPP_STD_VER >= 14
-#  define _LIBCPP_DEPRECATED_IN_CXX14 _LIBCPP_DEPRECATED
-#else
-#  define _LIBCPP_DEPRECATED_IN_CXX14
 #endif
 
 #if _LIBCPP_STD_VER >= 17
 #  define _LIBCPP_DEPRECATED_IN_CXX17 _LIBCPP_DEPRECATED
 #else
 #  define _LIBCPP_DEPRECATED_IN_CXX17
+#endif
+
+#if _LIBCPP_STD_VER >= 19
+#  define _LIBCPP_DEPRECATED_IN_CXX20 _LIBCPP_DEPRECATED
+#else
+#  define _LIBCPP_DEPRECATED_IN_CXX20
 #endif
 
 // Macros to enter and leave a state where deprecation warnings are suppressed.
@@ -993,32 +917,35 @@ typedef unsigned int   char32_t;
 #  define _LIBCPP_SUPPRESS_DEPRECATED_POP
 #endif
 
+// TODO: remove
 #if _LIBCPP_STD_VER <= 11
 #  define _LIBCPP_EXPLICIT_AFTER_CXX11
 #else
 #  define _LIBCPP_EXPLICIT_AFTER_CXX11 explicit
 #endif
 
-#if _LIBCPP_STD_VER > 11 && !defined(_LIBCPP_HAS_NO_CXX14_CONSTEXPR)
+// TODO: remove
+#if _LIBCPP_STD_VER > 11
 #  define _LIBCPP_CONSTEXPR_AFTER_CXX11 constexpr
 #else
 #  define _LIBCPP_CONSTEXPR_AFTER_CXX11
 #endif
 
-#if _LIBCPP_STD_VER > 14 && !defined(_LIBCPP_HAS_NO_CXX14_CONSTEXPR)
+// TODO: remove
+#if _LIBCPP_STD_VER > 14
 #  define _LIBCPP_CONSTEXPR_AFTER_CXX14 constexpr
 #else
 #  define _LIBCPP_CONSTEXPR_AFTER_CXX14
 #endif
 
-#if _LIBCPP_STD_VER > 17 && !defined(_LIBCPP_HAS_NO_CXX14_CONSTEXPR)
+// TODO: remove
+#if _LIBCPP_STD_VER > 17
 #  define _LIBCPP_CONSTEXPR_AFTER_CXX17 constexpr
 #else
 #  define _LIBCPP_CONSTEXPR_AFTER_CXX17
 #endif
 
 #if _LIBCPP_STD_VER > 17 && \
-    !defined(_LIBCPP_HAS_NO_CXX14_CONSTEXPR) && \
     !defined(_LIBCPP_HAS_NO_BUILTIN_IS_CONSTANT_EVALUATED)
 #  define _LIBCPP_CONSTEXPR_AFTER_CXX17_WITH_IS_CONSTANT_EVALUATED constexpr
 #else
@@ -1029,7 +956,7 @@ typedef unsigned int   char32_t;
 // NODISCARD macros to the correct attribute.
 #if __has_cpp_attribute(nodiscard) || defined(_LIBCPP_COMPILER_MSVC)
 #  define _LIBCPP_NODISCARD_ATTRIBUTE [[nodiscard]]
-#elif defined(_LIBCPP_COMPILER_CLANG) && !defined(_LIBCPP_CXX03_LANG)
+#elif defined(_LIBCPP_COMPILER_CLANG)
 #  define _LIBCPP_NODISCARD_ATTRIBUTE [[clang::warn_unused_result]]
 #else
 // We can't use GCC's [[gnu::warn_unused_result]] and
@@ -1056,14 +983,10 @@ typedef unsigned int   char32_t;
 #if _LIBCPP_STD_VER > 14 && defined(__cpp_inline_variables) && (__cpp_inline_variables >= 201606L)
 #  define _LIBCPP_INLINE_VAR inline
 #else
-#  define _LIBCPP_INLINE_VAR
+#  error "Compiler does not support inline variables"
 #endif
 
-#ifdef _LIBCPP_HAS_NO_RVALUE_REFERENCES
-#  define _LIBCPP_EXPLICIT_MOVE(x) _VSTD::move(x)
-#else
-#  define _LIBCPP_EXPLICIT_MOVE(x) (x)
-#endif
+#define _LIBCPP_EXPLICIT_MOVE(x) _VSTD::move(x)
 
 #ifndef _LIBCPP_CONSTEXPR_IF_NODEBUG
 #if defined(_LIBCPP_DEBUG) || defined(_LIBCPP_HAS_NO_CXX14_CONSTEXPR)
@@ -1285,7 +1208,7 @@ _LIBCPP_FUNC_VIS extern "C" void __sanitizer_annotate_contiguous_container(
 #endif
 
 // Use a function like macro to imply that it must be followed by a semicolon
-#if __cplusplus > 201402L && __has_cpp_attribute(fallthrough)
+#if __has_cpp_attribute(fallthrough)
 #  define _LIBCPP_FALLTHROUGH() [[fallthrough]]
 #elif __has_cpp_attribute(clang::fallthrough)
 #  define _LIBCPP_FALLTHROUGH() [[clang::fallthrough]]
@@ -1317,15 +1240,15 @@ _LIBCPP_FUNC_VIS extern "C" void __sanitizer_annotate_contiguous_container(
 #  define _LIBCPP_DECLSPEC_EMPTY_BASES
 #endif
 
-#if defined(_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES)
-#define _LIBCPP_ENABLE_CXX17_REMOVED_AUTO_PTR
-#define _LIBCPP_ENABLE_CXX17_REMOVED_UNEXPECTED_FUNCTIONS
-#define _LIBCPP_ENABLE_CXX17_REMOVED_RANDOM_SHUFFLE
-#define _LIBCPP_ENABLE_CXX17_REMOVED_BINDERS
-#endif // _LIBCPP_ENABLE_CXX17_REMOVED_FEATURES
+/* #if defined(_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES) */
+/* #define _LIBCPP_ENABLE_CXX17_REMOVED_AUTO_PTR */
+/* #define _LIBCPP_ENABLE_CXX17_REMOVED_UNEXPECTED_FUNCTIONS */
+/* #define _LIBCPP_ENABLE_CXX17_REMOVED_RANDOM_SHUFFLE */
+/* #define _LIBCPP_ENABLE_CXX17_REMOVED_BINDERS */
+/* #endif // _LIBCPP_ENABLE_CXX17_REMOVED_FEATURES */
 
 #if !defined(__cpp_deduction_guides) || __cpp_deduction_guides < 201611
-#define _LIBCPP_HAS_NO_DEDUCTION_GUIDES
+#error "Compiler does not support deduction guides"
 #endif
 
 #if !__has_keyword(__is_aggregate) && (_GNUC_VER_NEW < 7001)
@@ -1336,10 +1259,9 @@ _LIBCPP_FUNC_VIS extern "C" void __sanitizer_annotate_contiguous_container(
 #define _LIBCPP_HAS_NO_COROUTINES
 #endif
 
-// FIXME: Correct this macro when either (A) a feature test macro for the
-// spaceship operator is provided, or (B) a compiler provides a complete
-// implementation.
+#if !defined(__cpp_impl_three_way_comparision) || __cpp_impl_three_way_comparision < 201907L
 #define _LIBCPP_HAS_NO_SPACESHIP_OPERATOR
+#endif
 
 // Decide whether to use availability macros.
 #if !defined(_LIBCPP_BUILDING_LIBRARY) &&                                      \
